@@ -74,6 +74,18 @@
 		{% endfor %}
 	</div>
 </section>
+<section>
+	<div class="form-group">
+        <a href="/venues/{{ venue.id }}/edit">
+			<button type="button" display="inline-block" class="btn btn-primary btn-lg btn-block" id="edit-venue-button">Edit Venue</button>
+		</a>
+		<!--<button type="button" display="inline-block" class="btn btn-primary btn-lg btn-block btn-danger" id="delete-venue-button" data-id="{{ venue.id }}">Delete</button>-->
+		<!--<input type="button" value="Delete Venue" class="btn btn-primary btn-lg btn-block btn-danger" formaction="{{ url_for('delete_venue', venue_id=venue.id) }}">-->
+	</div>
+	<form action="{{ url_for('delete_venue', venue_id=venue.id) }}" method=delete>
+		<input type="submit" value="Delete Venue" class="btn btn-primary btn-lg btn-block btn-danger">
+	</form>
+</section>
 
 {% endblock %}
 

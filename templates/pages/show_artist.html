@@ -71,6 +71,14 @@
 		{% endfor %}
 	</div>
 </section>
+<section>
+	<div class="form-group">
+        <a href="/artists/{{ artist.id }}/edit">
+			<button type="button" display="inline-block" class="btn btn-primary btn-lg btn-block" id="edit-artist-button">Edit Artist</button>
+		</a>
+        <button type="button" display="inline-block" class="btn btn-primary btn-lg btn-block btn-danger" id="delete-artist-button" data-id="{{ artist.id }}">Delete</button>
+	</div>
+</section>
 
 {% endblock %}
 
