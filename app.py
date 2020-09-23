@@ -22,6 +22,8 @@ app = Flask(__name__)
 moment = Moment(app)
 app.config.from_object('config')
 db = SQLAlchemy(app)
+migrate = Migrate(app,db)
+
 
 #----------------------------------------------------------------------------#
 # Models.
@@ -44,9 +46,6 @@ class Venue(db.Model):
     seeking_talent = db.Column(db.Boolean, default=False)
     seeking_description = db.Column(db.String)
     shows = db.relationship('Show', backref='venue', lazy=True)
-
-    def __repr__(self):
-        return f'<Venue {self.id} {self.name} {self.city}>'
 
 
 class Artist(db.Model):
@@ -75,7 +74,7 @@ class Show(db.Model):
     start_time = db.Column(db.DateTime, nullable=False)
 
 
-migrate = Migrate(app, db)
+
 #----------------------------------------------------------------------------#
 # Filters.
 #----------------------------------------------------------------------------#
@@ -98,7 +97,10 @@ app.jinja_env.filters['datetime'] = format_datetime
 
 @app.route('/')
 def index():
-  return render_template('pages/home.html')
+    # hack :(
+    # loads seed data to DB
+    seed_data()
+    return render_template('pages/home.html')
 
 
 #  Venues
@@ -250,24 +252,22 @@ def create_venue_submission():
     return render_template('pages/home.html')
 
 
-@app.route('/venues/<venue_id>', methods=['DELETE'])
+@app.route('/venues/<venue_id>', methods=['POST'])
 def delete_venue(venue_id):
-    venue = Venue.query.filter_by(id=venue_id).first_or_404()
-    db.session.delete(venue)
-    db.session.commit()
-    #try:
-    #    venue = Venue.query.filter_by(id=venue_id).first_or_404()
-    #    db.session.delete(venue)
-    #    db.session.commit()
-    #    flash("Venue " + request.form['name'] + " is deleted successfully!")
-    #    return render_template('pages/home.html')
-    #except:
-    #    db.session.rollback()
-    #    flash("Venue " + request.form['name'] + " could not be deleted.")
-    #finally:
-    #    db.session.close()
 
-    return render_template('pages/home.html'), jsonify({"success": True}), 200
+    try:
+        venue = Venue.query.filter_by(id=venue_id).first_or_404()
+        db.session.delete(venue)
+        db.session.commit()
+        flash("Venue is deleted successfully!")
+        return render_template('pages/home.html')
+    except ValueError:
+        db.session.rollback()
+        flash("Venue could not be deleted.")
+    finally:
+        db.session.close()
+
+    return redirect(url_for('venues'))
 
 #  Artists
 #  ----------------------------------------------------------------
@@ -380,12 +380,7 @@ def edit_artist_submission(artist_id):
         artist.website = form.website.data
         artist.facebook_link = form.facebook_link.data
         artist.image_link = form.image_link.data
-
-        if form.seeking_venue.data == 'y':
-            artist.seeking_venue = True
-        else:
-            artist.seeking_venue = False
-
+        artist.seeking_venue = form.seeking_venue.data
         artist.seeking_description = form.seeking_description.data
         db.session.commit()
         flash('Artist ' + form.name.data + ' was successfully updated!')
@@ -443,6 +438,24 @@ def edit_venue_submission(venue_id):
         db.session.close()
 
     return redirect(url_for('show_venue', venue_id=venue_id))
+
+# delete artist
+@app.route('/artists/<artist_id>', methods=['POST'])
+def delete_artist(artist_id):
+
+    try:
+        artist = Artist.query.filter_by(id=artist_id).first_or_404()
+        db.session.delete(artist)
+        db.session.commit()
+        flash("Artist is deleted successfully!")
+        return render_template('pages/home.html')
+    except ValueError:
+        db.session.rollback()
+        flash("Artist could not be deleted.")
+    finally:
+        db.session.close()
+
+    return redirect(url_for('artists'))
 
 #  Create Artist
 #  ----------------------------------------------------------------
@@ -550,22 +563,8 @@ def server_error(error):
     return render_template('errors/500.html'), 500
 
 
-if not app.debug:
-    file_handler = FileHandler('error.log')
-    file_handler.setFormatter(
-        Formatter('%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]')
-    )
-    app.logger.setLevel(logging.INFO)
-    file_handler.setLevel(logging.INFO)
-    app.logger.addHandler(file_handler)
-    app.logger.info('errors')
-
-
-#----------------------------------------------------------------------------#
-# Seed data.
-#----------------------------------------------------------------------------#
-
-with app.app_context():
+# load seed data if the tables are empty
+def seed_data():
 
     # add venue seed data
     if db.session.query(Venue).count() == 0:
@@ -605,13 +604,12 @@ with app.app_context():
             "image_link": "https://images.unsplash.com/photo-1485686531765-ba63b07845a7?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=747&q=80"
         }]
 
-
         for venue in venue_seed:
             g = Venue(**venue)
             db.session.add(g)
             db.session.commit()
 
-# add atrist seed data
+    # add atrist seed data
     if db.session.query(Artist).count() == 0:
         artist_seed = [{
             "id": 4,
@@ -646,14 +644,12 @@ with app.app_context():
             "image_link": "https://images.unsplash.com/photo-1558369981-f9ca78462e61?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=794&q=80"
         }]
 
-
         for artist in artist_seed:
             g = Artist(**artist)
             db.session.add(g)
             db.session.commit()
 
-
-# add show seed data
+    # add show seed data
     if db.session.query(Show).count() == 0:
 
         show_seed = []
@@ -717,6 +713,19 @@ with app.app_context():
             g = Show(**show)
             db.session.add(g)
             db.session.commit()
+
+
+
+
+if not app.debug:
+    file_handler = FileHandler('error.log')
+    file_handler.setFormatter(
+        Formatter('%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]')
+    )
+    app.logger.setLevel(logging.INFO)
+    file_handler.setLevel(logging.INFO)
+    app.logger.addHandler(file_handler)
+    app.logger.info('errors')
 
 
 #----------------------------------------------------------------------------#

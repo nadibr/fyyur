@@ -76,9 +76,15 @@
         <a href="/artists/{{ artist.id }}/edit">
 			<button type="button" display="inline-block" class="btn btn-primary btn-lg btn-block" id="edit-artist-button">Edit Artist</button>
 		</a>
-        <button type="button" display="inline-block" class="btn btn-primary btn-lg btn-block btn-danger" id="delete-artist-button" data-id="{{ artist.id }}">Delete</button>
 	</div>
 </section>
+<form>
+	<input type="submit"
+		   value="Delete Artist"
+           class="btn btn-primary btn-lg btn-block btn-danger"
+           formmethod="post"
+           formaction="{{ url_for('delete_artist', artist_id=artist.id) }}">
+</form>
 
 {% endblock %}
 

@@ -57,15 +57,5 @@
       </div>
     </form>
   </div>
-<script>
-  const delete_venue_btn = document.getElementById('delete-venue-button')
-  delete_venue_btn.onclick = function(e){
-	const venue_id = e.target.dataset['id']
-	fetch('/venues/'+venue_id,{
-      method:'DELETE'
-	}).catch(
-			(error) => console.log(error)
-	)
-  }
-</script>
+
 {% endblock %}

@@ -82,8 +82,12 @@
 		<!--<button type="button" display="inline-block" class="btn btn-primary btn-lg btn-block btn-danger" id="delete-venue-button" data-id="{{ venue.id }}">Delete</button>-->
 		<!--<input type="button" value="Delete Venue" class="btn btn-primary btn-lg btn-block btn-danger" formaction="{{ url_for('delete_venue', venue_id=venue.id) }}">-->
 	</div>
-	<form action="{{ url_for('delete_venue', venue_id=venue.id) }}" method=delete>
-		<input type="submit" value="Delete Venue" class="btn btn-primary btn-lg btn-block btn-danger">
+	<form>
+    	<input type="submit"
+           value="Delete Venue"
+           class="btn btn-primary btn-lg btn-block btn-danger"
+           formmethod="post"
+           formaction="{{ url_for('delete_venue', venue_id=venue.id) }}">
 	</form>
 </section>
 
