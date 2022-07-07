@@ -13,8 +13,6 @@ On the website users can, using a PostgreSQL database:
 * searching for venues and artists.
 * learning more about a specific artist or venue.
 
-We want Fyyur to be the next new platform that artists and musical venues can use to find each other, and discover new music shows. Let's make that happen!
-
 ### Tech Stack
 
 Our tech stack will include:
